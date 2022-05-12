@@ -25,34 +25,50 @@
         :month-format="
           (timestamp) => new Date(timestamp.date).getMonth() + 1 + ' /'
         "
+        @click:event="showEvent"
       ></v-calendar>
     </v-sheet>
+
+    <v-dialog :value="event !== null" @click:outside="closeDialog" width="600">
+      <!-- eventがnullでなければEventDetailDialogを表示 -->
+      <EventDetailDialog v-if="event !== null" />
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import { format } from "date-fns"; // 日付を表示用の文字列に変換
 import { mapGetters, mapActions } from "vuex";
+import EventDetailDialog from "./EventDetailDialog.vue";
 
 export default {
   name: "CalendarIndex",
-
+  components: {
+    EventDetailDialog,
+  },
   data: () => ({
     value: format(new Date(), "yyyy/MM/dd"),
   }),
-
   computed: {
-    ...mapGetters("events", ["events"]),
+    // vuexのstateを呼び出しで使用できるように
+    ...mapGetters("events", ["events", "event"]),
     title() {
       //return format(this.value, 'yyyy年 M月');
       return format(new Date(this.value), "yyyy年 M月");
     },
   },
-
   methods: {
-    ...mapActions("events", ["fetchEvents"]),
+    // vuexのactionを呼び出しで使用できるように
+    ...mapActions("events", ["fetchEvents", "setEvent"]),
     setToday() {
       this.value = format(new Date(), "yyyy/MM/dd");
+    },
+    showEvent({ event }) {
+      // showEventメソッドを呼び出したらストアにイベントデータを保持するようにする
+      this.setEvent(event);
+    },
+    closeDialog() {
+      this.setEvent(null);
     },
   },
 };
